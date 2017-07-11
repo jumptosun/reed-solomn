@@ -45,3 +45,35 @@ uint8_t galExp(uint8_t a, int n)
 
     return expTable[logResult];
 }
+
+void galMulSlice(uint8_t c, iovec *in, iovec *out)
+{
+    uint8_t* mt = (uint8_t*)mulTable[c];
+    uint8_t input = 0;
+
+    for(int i = 0; i < out->iov_len; i++) {
+        input = 0;
+
+        if(i < in->iov_len) {
+            input = ((uint8_t*)(in->iov_base))[i];
+        }
+
+        ((uint8_t*)(out->iov_base))[i] = mt[input];
+    }
+}
+
+void galMulSliceXor(uint8_t c, iovec *in, iovec *out)
+{
+    uint8_t* mt = (uint8_t*)mulTable[c];
+    uint8_t input = 0;
+
+    for(int i = 0; i < out->iov_len; i++) {
+        input = 0;
+
+        if(i < in->iov_len) {
+            input = ((uint8_t*)(in->iov_base))[i];
+        }
+
+        ((uint8_t*)(out->iov_base))[i] ^= mt[input];
+    }
+}

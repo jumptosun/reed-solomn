@@ -19,17 +19,17 @@ public:
     static RsMatrix* VanderMonde(int rows, int cols);
 
 public:
-    virtual int Initialize(int rows, int cols);
+    int Initialize(int rows, int cols);
 
-    virtual bool Check();
-    virtual std::string String();
-    virtual RsMatrix* Multiply(RsMatrix *right);
-    virtual RsMatrix* Augment(RsMatrix *right);
-    virtual bool SameSize(RsMatrix* right);
-    virtual RsMatrix* SubMatrix(int rmin, int cmin, int rmax, int cmax);
-    virtual int SwapRows(int r1, int r2);
-    virtual bool IsSquare();
-    virtual RsMatrix* Invert();
+    bool Check();
+    std::string String();
+    RsMatrix* Multiply(RsMatrix *right);
+    RsMatrix* Augment(RsMatrix *right);
+    bool SameSize(RsMatrix* right);
+    RsMatrix* SubMatrix(int rmin, int cmin, int rmax, int cmax);
+    int SwapRows(int r1, int r2);
+    bool IsSquare();
+    RsMatrix* Invert();
 
 protected:
     inline int GaussianElimination();

@@ -3,6 +3,10 @@
 
 #include <vector>
 #include <stdint.h>
+#include <sys/socket.h>
+
+#include <rs_matrix.hpp>
+#include <rs_inversion_tree.hpp>
 
 class ReedSolomon
 {
@@ -10,18 +14,24 @@ private:
     int m_nDataShards;
     int m_nParityShards;
     int m_nShards;
-    uint8_t** m_Matrix;
-    uint8_t** m_Parity;
+
+    RsMatrix* m_Matrix;
+    RsInversionTree* m_Tree;
+
+    RsMatrix* m_Parity;
 
 public:
     ReedSolomon();
     virtual ~ReedSolomon();
 public:
-    virtual int initialize(int dataShards, int parityShards);
+    int Initialize(int dataShards, int parityShards);
 
-    virtual int Encode(std::vector<uint8_t*>& shards) {}
-    virtual bool Verify(std::vector<uint8_t*>& shards) {}
-    virtual int Reconstruct(std::vector<uint8_t*>& shards) {}
+    int Encode(std::vector<iovec*>& shards);
+//    bool Verify(std::vector<iovec*>& shards);
+    int Reconstruct(std::vector<iovec*>& shards, int length);
+protected:
+    int checkShards(std::vector<iovec*>& shards, int& maxLength);
+    int codeSomeShards(RsMatrix* MatrixRows, std::vector<iovec*>& input, std::vector<iovec*>& output, int outputCount);
 };
 
 #endif // REED_SOLOMON_CPP

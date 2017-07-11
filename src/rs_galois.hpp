@@ -2,6 +2,7 @@
 #define RS_UTILITY_HPP
 
 #include <stdint.h>
+#include <sys/socket.h>
 
 #define RS_FIELD_SIZE 256
 #define RS_POLYNOMIAL 29
@@ -52,5 +53,8 @@ const uint8_t mulTableHigh[256][16]  = {{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
 extern uint8_t galMultiply(uint8_t a, uint8_t b);
 extern uint8_t galDivide(uint8_t a, uint8_t b);
 extern uint8_t galExp(uint8_t a, int n);
+
+extern void galMulSlice(uint8_t c, iovec* in, iovec* out);
+extern void galMulSliceXor(uint8_t c, iovec* in, iovec* out);
 
 #endif // RS_UTILITY_HPP
