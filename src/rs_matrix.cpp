@@ -33,7 +33,7 @@ RsMatrix *RsMatrix::IdentityMatrix(int size)
     RsMatrix* matrix = new RsMatrix();
     matrix->Initialize(size,size);
 
-    for(int i = 0; i < size; i) {
+    for(int i = 0; i < size; i++) {
         matrix->m_Matrix[i][i] = 1;
     }
 
@@ -64,8 +64,12 @@ int RsMatrix::Initialize(int rows, int cols)
         return ERROR_INVALID_PARAM;
     }
 
+    m_nRows = rows;
+    m_nCols = cols;
+
     uint8_t* matrix = new uint8_t[rows * cols];
     bzero(matrix,rows * cols);
+    m_Matrix = new uint8_t*[rows];
 
     for(int i = 0; i < rows; i++) {
         m_Matrix[i] = matrix + (i * cols);
@@ -85,7 +89,19 @@ bool RsMatrix::Check()
 
 string RsMatrix::String()
 {
-    return "";
+    string s;
+    char buf[8];
+    bzero(buf,8);
+
+    for(int r = 0; r < m_nRows; r++) {
+        for(int c = 0; c < m_nCols; c++) {
+            sprintf(buf, "%3d ", m_Matrix[r][c]);
+            s += buf;
+        }
+        s += "\n";
+    }
+
+    return s;
 }
 
 RsMatrix *RsMatrix::Multiply(RsMatrix *right)
@@ -191,12 +207,10 @@ RsMatrix *RsMatrix::Invert()
     }
 
     // refine
-    RsMatrix tmp, *out;
+    RsMatrix *out;
     RsAutoFree(RsMatrix, out);
 
-    tmp.Initialize(m_nRows, m_nRows);
-
-    out = tmp.Augment(IdentityMatrix(m_nRows));
+    out = Augment(IdentityMatrix(m_nRows));
 
     out->GaussianElimination();
 
@@ -219,13 +233,15 @@ int RsMatrix::GaussianElimination()
         }
 
         if(m_Matrix[r][r] == 0) {
-            fprintf(stderr,"the matrix is singular");
+            fprintf(stderr,"the matrix is singular.\n");
             return ERROR_SINGULAR_MATRIX;
         }
 
-        scale = galDivide(1, m_Matrix[r][r]);
-        for(c = 0; c < m_nCols; c++) {
-            m_Matrix[r][c] = galMultiply(m_Matrix[r][c], scale);
+        if(m_Matrix[r][r] != 1) {
+            scale = galDivide(1, m_Matrix[r][r]);
+            for(c = 0; c < m_nCols; c++) {
+                m_Matrix[r][c] = galMultiply(m_Matrix[r][c], scale);
+            }
         }
 
         for(rowBelow = r + 1; rowBelow < m_nRows; rowBelow++ ) {
@@ -238,13 +254,14 @@ int RsMatrix::GaussianElimination()
         }
     }
 
+
     for(d = 0; d < m_nRows; d++) {
         for(rowAbove = 0; rowAbove < d; rowAbove++) {
             if(m_Matrix[rowAbove][d] != 0) {
                 scale = m_Matrix[rowAbove][d];
 
                 for(c = 0; c < m_nCols; c++) {
-                    m_Matrix[rowAbove][c] = galMultiply(scale,m_Matrix[d][c]);
+                    m_Matrix[rowAbove][c] ^= galMultiply(scale,m_Matrix[d][c]);
                 }
             }
         }

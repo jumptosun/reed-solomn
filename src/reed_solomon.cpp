@@ -96,7 +96,7 @@ int ReedSolomon::Encode(std::vector<iovec *> &shards)
     return ret;
 }
 
-int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, int length)
+int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, int maxLength)
 {
     int ret = ERROR_SUCCESS;
     int numberPresent  = 0;
@@ -162,8 +162,8 @@ int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, int length)
     for(int iShard = 0; iShard < m_nDataShards; iShard++) {
         if(shards[iShard] == NULL) {
             shards[iShard] = new iovec;
-            shards[iShard]->iov_base = new uint8_t[length];
-            shards[iShard]->iov_len = length;
+            shards[iShard]->iov_base = new uint8_t[maxLength];
+            shards[iShard]->iov_len = maxLength;
 
             output.push_back(shards[iShard]);
             memcpy(matrixParity->m_Matrix[outputCount], dataDecodeMatrix->m_Matrix[iShard], m_nDataShards);
@@ -175,7 +175,7 @@ int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, int length)
     RsMatrix* matrixRows = matrixParity->SubMatrix(0, 0, outputCount, m_nDataShards);
     RsAutoFree(RsMatrix, matrixRows);
 
-    codeSomeShards(matrixRows, subShards, output, length);
+    codeSomeShards(matrixRows, subShards, output, outputCount);
 
     return ret;
 }

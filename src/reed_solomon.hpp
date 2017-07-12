@@ -25,10 +25,23 @@ public:
     virtual ~ReedSolomon();
 public:
     int Initialize(int dataShards, int parityShards);
-
+    /**
+     * @brief Encode
+     * the shards can be defferent length,
+     * the actual encode length should be the max length of the shards.
+     */
     int Encode(std::vector<iovec*>& shards);
-//    bool Verify(std::vector<iovec*>& shards);
-    int Reconstruct(std::vector<iovec*>& shards, int length);
+
+    /**
+     * @brief Reconstruct
+     * if the shards is lost, the shard should be NULL pointer.
+     *
+     * @param maxLength The encode length of the shards,
+     * the lost shard will be reconstruct to the length.
+     */
+    int Reconstruct(std::vector<iovec*>& shards, int maxLength);
+
+    ///< bool Verify(std::vector<iovec*>& shards);	implement interface if need
 protected:
     int checkShards(std::vector<iovec*>& shards, int& maxLength);
     int codeSomeShards(RsMatrix* MatrixRows, std::vector<iovec*>& input, std::vector<iovec*>& output, int outputCount);

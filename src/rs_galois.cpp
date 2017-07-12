@@ -15,8 +15,8 @@ uint8_t galDivide(uint8_t a, uint8_t b)
 
     assert(b);
 
-    int logA = expTable[a];
-    int logB = expTable[b];
+    int logA = logTable[a];
+    int logB = logTable[b];
 
     int logResult = logA - logB;
 
