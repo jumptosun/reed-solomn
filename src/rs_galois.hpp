@@ -4,6 +4,10 @@
 #include <stdint.h>
 #include <sys/socket.h>
 
+/**
+ * 8-bit Galois Field, arithmetic operation impletment
+ */
+
 #define RS_FIELD_SIZE 256
 #define RS_POLYNOMIAL 29
 
@@ -54,6 +58,10 @@ extern uint8_t galMultiply(uint8_t a, uint8_t b);
 extern uint8_t galDivide(uint8_t a, uint8_t b);
 extern uint8_t galExp(uint8_t a, int n);
 
+/**
+ * @brief galMulSlice
+ *  if the in is less than out , 0 is used instead.
+ */
 extern void galMulSlice(uint8_t c, iovec* in, iovec* out);
 extern void galMulSliceXor(uint8_t c, iovec* in, iovec* out);
 

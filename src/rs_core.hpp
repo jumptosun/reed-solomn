@@ -8,6 +8,7 @@
 
 #define rs_min(a, b) (a < b? a : b)
 #define rs_max(a, b) (a > b? a : b)
+#define rs_square(a) (a * a)
 
 #define rs_freep(p) \
     if(p) { \

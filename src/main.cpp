@@ -33,6 +33,7 @@ int main(int argc, char *argv[])
     // encode
     rs->Encode(origin);
 
+    // drop the first 3 data
     printf("drop first 3 data.\n\n");
     for(int i = 0; i < 3; i++) {
         iovec* v = origin[i];

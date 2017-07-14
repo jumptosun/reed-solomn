@@ -162,7 +162,8 @@ bool RsMatrix::SameSize(RsMatrix *right)
 
 RsMatrix *RsMatrix::SubMatrix(int rmin, int cmin, int rmax, int cmax)
 {
-    if((rmax - rmin) <= 0 || (cmax -cmin) <= 0) {
+    if((rmax - rmin) <= 0 || (cmax -cmin) <= 0 ||
+       (rmax - rmin) > m_nRows || (cmax - cmax) > m_nCols ) {
         fprintf(stderr, "invalid parameter.");
         return NULL;
     }
@@ -207,21 +208,25 @@ RsMatrix *RsMatrix::Invert()
     }
 
     // refine
-    RsMatrix *out;
+    RsMatrix *out, *id;
     RsAutoFree(RsMatrix, out);
+    RsAutoFree(RsMatrix, id);
 
-    out = Augment(IdentityMatrix(m_nRows));
-
-    out->GaussianElimination();
+    id = IdentityMatrix(m_nRows);
+    out = Augment(id);
+    out->gaussianElimination();
 
     return out->SubMatrix(0, m_nRows, m_nRows, m_nRows * 2);
 }
 
-int RsMatrix::GaussianElimination()
+int RsMatrix::gaussianElimination()
 {
     int ret = ERROR_SUCCESS;
     int r, c, d, rowBelow, rowAbove, scale;
 
+    // Create a Vandermonde matrix, which is guaranteed to have the
+    // property that any subset of rows that forms a square matrix
+    // is invertible.
     for(r = 0; r < m_nRows; r++) {
         if(m_Matrix[r][r] == 0) {
             for(rowBelow = r + 1; rowBelow < m_nRows; rowBelow++ ) {
@@ -237,6 +242,7 @@ int RsMatrix::GaussianElimination()
             return ERROR_SINGULAR_MATRIX;
         }
 
+        // scale to 1
         if(m_Matrix[r][r] != 1) {
             scale = galDivide(1, m_Matrix[r][r]);
             for(c = 0; c < m_nCols; c++) {
@@ -244,6 +250,9 @@ int RsMatrix::GaussianElimination()
             }
         }
 
+        // Make everything below the 1 be a 0 by subtracting
+        // a multiple of it.  (Subtraction and addition are
+        // both exclusive or in the Galois field.)
         for(rowBelow = r + 1; rowBelow < m_nRows; rowBelow++ ) {
             if(m_Matrix[rowBelow][r] != 0) {
                 scale = m_Matrix[rowBelow][r];
@@ -254,7 +263,7 @@ int RsMatrix::GaussianElimination()
         }
     }
 
-
+    // Now clear the part above the main diagonal.
     for(d = 0; d < m_nRows; d++) {
         for(rowAbove = 0; rowAbove < d; rowAbove++) {
             if(m_Matrix[rowAbove][d] != 0) {
