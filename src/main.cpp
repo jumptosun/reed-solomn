@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 {
     vector<iovec*> origin;
 
-    printf("before the reconstruct:\n");
+    rs_log("before the reconstruct:\n");
     for(int i = 0; i < 10; i++) {
         iovec *data = new iovec;
         data->iov_base = new char[64];
@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 
         bzero(data->iov_base,64);
         sprintf((char*)data->iov_base,"%d %d %d", i, i+1 , i+2);
-        printf("%s\n",(char*)data->iov_base);
+        rs_log("%s\n",(char*)data->iov_base);
 
         origin.push_back(data);
     }
@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     rs->Encode(origin);
 
     // drop the first 3 data
-    printf("drop first 3 data.\n\n");
+    rs_log("drop first 3 data.\n\n");
     for(int i = 0; i < 3; i++) {
         iovec* v = origin[i];
         origin[i] = NULL;
@@ -47,9 +47,9 @@ int main(int argc, char *argv[])
     // reconstruct
     rs->Reconstruct(origin,64);
 
-    printf("after the reconstruct:\n");
+    rs_log("after the reconstruct:\n");
     for(int i = 0; i < 10; i++) {
-        printf("%s\n",(char*)origin[i]->iov_base);
+        rs_log("%s\n",(char*)origin[i]->iov_base);
     }
 
     return 0;

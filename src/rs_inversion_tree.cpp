@@ -69,11 +69,19 @@ RsInversionTree::RsInversionTree(int shards)
 {
     m_nShards = shards;
     root = new RsInversionNode(shards);
+
+#ifdef RS_CONFIG_OPTION_THREAD_SAFETY
+    pthread_mutex_init(&m_Mutex, NULL);
+#endif
 }
 
 RsInversionTree::~RsInversionTree()
 {
     rs_freep(root);
+
+#ifdef RS_CONFIG_OPTION_THREAD_SAFETY
+    pthread_mutex_destroy(&m_Mutex);
+#endif
 }
 
 RsMatrix *RsInversionTree::GetInvertedMatrix(std::vector<int> &invalidIndices)
@@ -81,6 +89,10 @@ RsMatrix *RsInversionTree::GetInvertedMatrix(std::vector<int> &invalidIndices)
     if(invalidIndices.empty()) {
         return NULL;
     }
+
+#ifdef RS_CONFIG_OPTION_THREAD_SAFETY
+    RsAutoLock lock(&m_Mutex);
+#endif
 
     return root->GetInvertedMatrix(invalidIndices,0);
 }
@@ -95,9 +107,13 @@ int RsInversionTree::InsertInvertedMatrix(std::vector<int> &invalidIndices, RsMa
 
     if(!matrix->IsSquare()) {
         ret = ERROR_MATRIX_NOT_SQUARE;
-        fprintf(stderr, "the inversion matrix is not square.");
+        rs_log( "the inversion matrix is not square.");
         return ret;
     }
+
+#ifdef RS_CONFIG_OPTION_THREAD_SAFETY
+    RsAutoLock lock(&m_Mutex);
+#endif
 
     return root->InsertInvertedMatrix(invalidIndices,matrix,shards,0);
 }

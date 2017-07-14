@@ -107,7 +107,7 @@ string RsMatrix::String()
 RsMatrix *RsMatrix::Multiply(RsMatrix *right)
 {
     if(this->m_nCols != right->m_nRows) {
-        fprintf(stderr,"first matrix's colomn should equal second matrix's row.");
+        rs_log("first matrix's colomn should equal second matrix's row.");
         return NULL;
     }
 
@@ -164,7 +164,7 @@ RsMatrix *RsMatrix::SubMatrix(int rmin, int cmin, int rmax, int cmax)
 {
     if((rmax - rmin) <= 0 || (cmax -cmin) <= 0 ||
        (rmax - rmin) > m_nRows || (cmax - cmax) > m_nCols ) {
-        fprintf(stderr, "invalid parameter.");
+        rs_log( "invalid parameter.");
         return NULL;
     }
 
@@ -238,7 +238,7 @@ int RsMatrix::gaussianElimination()
         }
 
         if(m_Matrix[r][r] == 0) {
-            fprintf(stderr,"the matrix is singular.\n");
+            rs_log("the matrix is singular.\n");
             return ERROR_SINGULAR_MATRIX;
         }
 

@@ -33,12 +33,12 @@ int ReedSolomon::Initialize(int dataShards, int parityShards)
     int ret = ERROR_SUCCESS;
 
     if(m_nDataShards != -1 || m_nParityShards != -1 || m_nShards != -1) {
-        fprintf(stderr, "object already initialize");
+        rs_log( "object already initialize");
         return ERROR_INVALID_PARAM;
     }
 
     if(dataShards <= 0 || parityShards <= 0 || (dataShards + parityShards) > 255) {
-        fprintf(stderr, "invalid parameter, should be between 0~255");
+        rs_log( "invalid parameter, should be between 0~255");
         return ERROR_INVALID_PARAM;
     }
 
@@ -55,7 +55,7 @@ int ReedSolomon::Initialize(int dataShards, int parityShards)
 
     if(vm == NULL) {
         ret = ERROR_INVALID_PARAM;
-        fprintf(stderr, "get the vandermonde matrix failed.");
+        rs_log( "get the vandermonde matrix failed.");
         return ret;
     }
 
@@ -193,7 +193,7 @@ int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, int maxLength)
         // Cache the inverted matrix in the tree for future use keyed on the
         // indices of the invalid rows.
         if(m_Tree->InsertInvertedMatrix(invalidIndice,dataDecodeMatrix,m_nShards)) {
-            fprintf(stderr,"insert decode matrix failed.");
+            rs_log("insert decode matrix failed.");
         }
     }
 

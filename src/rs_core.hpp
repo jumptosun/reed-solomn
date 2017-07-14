@@ -3,8 +3,18 @@
 
 #include <stddef.h>
 #include <assert.h>
-
 #include <sys/types.h>
+#include <pthread.h>
+
+
+/////////////////// OPTION //////////////////////////
+
+// whether turn on the thread safety
+#undef RS_CONFIG_OPTION_THREAD_SAFETY
+// change the log funtion if need
+#define rs_log(msg, ...) printf(msg, ##__VA_ARGS__)
+
+/////////////////////////////////////////////////////
 
 #define rs_min(a, b) (a < b? a : b)
 #define rs_max(a, b) (a > b? a : b)
@@ -57,5 +67,24 @@ public:
         *ptr = NULL;
     }
 };
+
+class RsAutoLock
+{
+public:
+    RsAutoLock(pthread_mutex_t *mutex)
+    {
+        _mutex = mutex;
+        pthread_mutex_lock(_mutex);
+    }
+
+    ~RsAutoLock()
+    {
+        pthread_mutex_unlock(_mutex);
+    }
+
+private:
+    pthread_mutex_t* _mutex;
+};
+
 
 #endif // RS_CORE_HPP
