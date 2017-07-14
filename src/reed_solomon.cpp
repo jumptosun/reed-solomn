@@ -135,17 +135,14 @@ int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, int maxLength)
     }
 
     RsMatrix* dataDecodeMatrix = m_Tree->GetInvertedMatrix(invalidIndice);
-    RsAutoFree(RsMatrix, dataDecodeMatrix);
     RsMatrix* subMatrix = new RsMatrix();
     RsAutoFree(RsMatrix, subMatrix);
 
     if(dataDecodeMatrix == NULL) {
         subMatrix->Initialize(m_nDataShards, m_nDataShards);
 
-        for(int row = 0; row < validIndice.size(); row++) {
-            for(int c = 0; c < m_nDataShards; c++) {
-                subMatrix->m_Matrix[row][c] = m_Matrix->m_Matrix[validIndice[row]][c];
-            }
+        for(int row = 0; row < validIndice.size() && row < subMatrix->m_nRows; row++) {
+            memcpy(subMatrix->m_Matrix[row], m_Matrix->m_Matrix[validIndice[row]], m_nDataShards);
         }
 
         dataDecodeMatrix = subMatrix->Invert();

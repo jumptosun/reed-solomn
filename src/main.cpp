@@ -19,8 +19,8 @@ int main(int argc, char *argv[])
         data->iov_base = new char[64];
         data->iov_len = 64;
 
-        bzero(data->iov_base,60);
-        sprintf((char*)data->iov_base,"origin data index %d", i);
+        bzero(data->iov_base,64);
+        sprintf((char*)data->iov_base,"%d %d %d", i, i+1 , i+2);
         printf("%s\n",(char*)data->iov_base);
 
         origin.push_back(data);
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     cout<<endl;
 
     ReedSolomon* rs = new ReedSolomon();
-    rs->Initialize(10,3);
+    rs->Initialize(10,4);
 
     // encode
     rs->Encode(origin);
