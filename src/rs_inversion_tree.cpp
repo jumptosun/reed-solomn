@@ -6,6 +6,7 @@
 #include <rs_error.hpp>
 #include <rs_core.hpp>
 #include <rs_inversion_tree.hpp>
+#include <rs_config.hpp>
 
 RsInversionNode::RsInversionNode(int shards)
 {

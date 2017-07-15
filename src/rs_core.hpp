@@ -7,15 +7,6 @@
 #include <pthread.h>
 
 
-/////////////////// OPTION //////////////////////////
-
-// whether turn on the thread safety
-#undef RS_CONFIG_OPTION_THREAD_SAFETY
-// change the log funtion if need
-#define rs_log(msg, ...) printf(msg, ##__VA_ARGS__)
-
-/////////////////////////////////////////////////////
-
 #define rs_min(a, b) (a < b? a : b)
 #define rs_max(a, b) (a > b? a : b)
 #define rs_square(a) (a * a)

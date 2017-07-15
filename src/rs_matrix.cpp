@@ -3,6 +3,7 @@
 #include <rs_error.hpp>
 #include <rs_galois.hpp>
 #include <rs_core.hpp>
+#include <rs_config.hpp>
 
 #include <string.h>
 #include <stdio.h>

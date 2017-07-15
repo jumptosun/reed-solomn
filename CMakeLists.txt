@@ -5,4 +5,4 @@ set(CMAKE_CXX_FLAGS "-g -O0")
 
 include_directories(./src)
 aux_source_directory(./src SRC_LIST)
-add_executable(${PROJECT_NAME} ${SRC_LIST})
+add_library("vcrs" ${SRC_LIST})

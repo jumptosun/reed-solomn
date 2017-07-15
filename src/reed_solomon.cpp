@@ -7,6 +7,9 @@
 #include <rs_core.hpp>
 #include <reed_solomon.hpp>
 #include <rs_galois.hpp>
+#include <rs_config.hpp>
+#include <rs_matrix.hpp>
+#include <rs_inversion_tree.hpp>
 
 using namespace std;
 
