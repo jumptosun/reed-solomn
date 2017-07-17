@@ -24,8 +24,8 @@ reed-solomon算法的C++实现，移植自reed-solomon的go语言实现 https://
 	rs->Reconstruct(origin,64);
 
 ## 配置
-Reed-Solomon 默认是线程不安全的，并且默认日志输出为标准输出。通过修改rs_config.hpp　文件来确保线程安全，或修改日志输出。修改后，需要使用 cmake 重新编译。   
-*NOTING* :　只有当 reconstruct 分布在多个线程时才用开启线程安全。   
+Reed-Solomon 默认是线程不安全的，并且默认日志输出为标准输出。通过修改rs_config.hpp　文件来确保线程安全，或修改日志输出。修改后，需要重新编译。   
+*NOTING* :　只有当 reconstruct 分布在多个线程时才需开启线程安全。   
 
 	// whether turn on the thread safety
 	#undef RS_CONFIG_OPTION_THREAD_SAFETY
