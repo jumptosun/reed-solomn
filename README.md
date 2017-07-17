@@ -8,9 +8,8 @@ reed-solomon算法的C++实现，移植自reed-solomon的go语言实现 https://
 |--- CMakeLists.txt   
 |--- src   
 |--- include   
-|--- lib   
 
-包含 include 下的 reed_solomon.hpp，并且链接 lib　下的 libvcrs.a　即可使用。
+在项目根目录下运行 make。在自己的项目里包含 include 下的 reed_solomon.hpp，并且链接生成的 ./lib/libvcrs.a 即可使用。
 或者直接拷贝 src 下的源码至自己的工程，手动编译使用。
 
 编码用例请阅读 src/example/demo.cpp
