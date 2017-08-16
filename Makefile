@@ -14,6 +14,7 @@ default:${SRC}
 	(cd build && cmake .. && make)
 	if [ ! -d  ./lib ]; then mkdir ./lib; fi
 	cp ./build/libvcrs.a ./lib
+	cp ./src/reed_solomon.hpp ./include
 
   
 .PRONY:clean  
