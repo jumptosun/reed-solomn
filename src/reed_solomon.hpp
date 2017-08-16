@@ -1,6 +1,7 @@
 #ifndef REED_SOLOMON_CPP
 #define REED_SOLOMON_CPP
 
+#include <map>
 #include <vector>
 #include <stdint.h>
 #include <sys/socket.h>
@@ -21,7 +22,8 @@ private:
     int m_nShards;			///< Total number of shards. Calculated, and should not be modified.
 
     RsMatrix* m_Matrix;
-    RsInversionTree* m_Tree;
+//    RsInversionTree* m_Tree;
+    std::map<std::vector<int>, RsMatrix*> m_Tree;
 
     RsMatrix* m_Parity;
 

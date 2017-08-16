@@ -20,15 +20,20 @@ ReedSolomon::ReedSolomon()
     m_nShards = -1;
 
     m_Matrix = NULL;
-    m_Tree = NULL;
+//    m_Tree = NULL;
     m_Parity = NULL;
 }
 
 ReedSolomon::~ReedSolomon()
 {
     rs_freep(m_Matrix);
-    rs_freep(m_Tree);
+//    rs_freep(m_Tree);
     rs_freep(m_Parity);
+
+    std::map<std::vector<int>, RsMatrix*>::iterator it = m_Tree.begin();
+    for(; it != m_Tree.end(); ++it) {
+        rs_freep(it->second);
+    }
 }
 
 int ReedSolomon::Initialize(int dataShards, int parityShards)
@@ -73,7 +78,7 @@ int ReedSolomon::Initialize(int dataShards, int parityShards)
     RsAutoFree(RsMatrix, invert);
 
     m_Matrix = vm->Multiply(invert);
-    m_Tree = new RsInversionTree(m_nShards);
+//    m_Tree = new RsInversionTree(m_nShards);
 
     m_Parity = m_Matrix->SubMatrix(m_nDataShards, 0, m_nShards, m_Matrix->m_nRows);
 
@@ -172,7 +177,11 @@ int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, int maxLength)
     // If the inverted matrix isn't cached in the tree yet we must
     // construct it ourselves and insert it into the tree for the
     // future.  In this way the inversion tree is lazily loaded.
-    RsMatrix* dataDecodeMatrix = m_Tree->GetInvertedMatrix(invalidIndice);
+    RsMatrix* dataDecodeMatrix = NULL; //m_Tree->GetInvertedMatrix(invalidIndice);
+    std::map<std::vector<int>, RsMatrix*>::iterator it;
+    if((it = m_Tree.find(invalidIndice)) != m_Tree.end()) {
+        dataDecodeMatrix = it->second;
+    }
 
     if(dataDecodeMatrix == NULL) {
         RsMatrix subMatrix;
@@ -195,9 +204,11 @@ int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, int maxLength)
 
         // Cache the inverted matrix in the tree for future use keyed on the
         // indices of the invalid rows.
-        if(m_Tree->InsertInvertedMatrix(invalidIndice,dataDecodeMatrix,m_nShards)) {
-            rs_log("insert decode matrix failed.");
-        }
+//        if(m_Tree->InsertInvertedMatrix(invalidIndice,dataDecodeMatrix,m_nShards)) {
+//            rs_log("insert decode matrix failed.");
+//        }
+
+        m_Tree[invalidIndice] = dataDecodeMatrix;
     }
 
     // Re-create any data shards that were missing.
