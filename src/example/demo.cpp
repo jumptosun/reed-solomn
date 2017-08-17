@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     rs->Reconstruct(origin);
 
     printf("after the reconstruct:\n");
-    for(int i = 0; i < 10; i++) {
+    for(int i = 0; i < RS_DATA_SHARDS_NUM; i++) {
         printf("%s\n",(char*)origin[i]->iov_base);
     }
 
