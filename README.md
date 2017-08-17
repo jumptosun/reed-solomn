@@ -21,7 +21,7 @@ reed-solomon算法的C++实现，移植自reed-solomon的go语言实现 https://
 	// encode
 	rs->Encode(origin);
 	// reconstruct
-	rs->Reconstruct(origin,64);
+	rs->Reconstruct(origin,false);
 
 ## 配置
 Reed-Solomon 默认是线程不安全的，并且默认日志输出为标准输出。通过修改rs_config.hpp　文件来确保线程安全，或修改日志输出。修改后，需要重新编译。   
