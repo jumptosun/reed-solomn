@@ -55,7 +55,7 @@ public:
      * @param maxLength The encode length of the shards,
      * the lost shard will be reconstruct to the maxlength.
      */
-    int Reconstruct(std::vector<iovec*>& shards, int maxLength);
+    int Reconstruct(std::vector<iovec*>& shards, bool reconstruct_parity = false);
 
 protected:
     /**
@@ -70,9 +70,9 @@ protected:
      * @param MatrixRows Is The rows from the matrix to use.
      * @param input  An array of byte arrays, each of which is one input shard.
      * @param output  An array of byte arrays, each of which is a parity shard.
-     * @param outputCount Which is the number of outputs to compute, namely the maxLength in Reconstruct
+     * @param byteCount
      */
-    int codeSomeShards(RsMatrix* MatrixRows, std::vector<iovec*>& input, std::vector<iovec*>& output, int outputCount);
+    int codeSomeShards(RsMatrix* MatrixRows, std::vector<iovec*>& input, std::vector<iovec*>& output, int byteCount);
 };
 
 #endif // REED_SOLOMON_CPP

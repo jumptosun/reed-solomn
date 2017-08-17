@@ -9,7 +9,6 @@
 #include <rs_galois.hpp>
 #include <rs_config.hpp>
 #include <rs_matrix.hpp>
-#include <rs_inversion_tree.hpp>
 
 using namespace std;
 
@@ -20,14 +19,12 @@ ReedSolomon::ReedSolomon()
     m_nShards = -1;
 
     m_Matrix = NULL;
-//    m_Tree = NULL;
     m_Parity = NULL;
 }
 
 ReedSolomon::~ReedSolomon()
 {
     rs_freep(m_Matrix);
-//    rs_freep(m_Tree);
     rs_freep(m_Parity);
 
     std::map<std::vector<int>, RsMatrix*>::iterator it = m_Tree.begin();
@@ -112,7 +109,7 @@ int ReedSolomon::Encode(std::vector<iovec *> &shards)
     }
 
     // do encode
-    codeSomeShards(m_Parity, shards, output, m_nParityShards);
+    codeSomeShards(m_Parity, shards, output, maxLength);
 
     // append the parity shards after the input
     shards.insert(shards.end(),output.begin(),output.end());
@@ -120,10 +117,11 @@ int ReedSolomon::Encode(std::vector<iovec *> &shards)
     return ret;
 }
 
-int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, int maxLength)
+int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, bool reconstruct_parity)
 {
     int ret = ERROR_SUCCESS;
     int numberPresent  = 0;
+    int maxLength = 0;
 
     // check arguments
     if(shards.size() != m_nShards) {
@@ -134,6 +132,10 @@ int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, int maxLength)
     for(int i = 0; i < shards.size(); i++) {
         if(shards[i] != NULL) {
             numberPresent++;
+
+            if(maxLength < shards[i]->iov_len) {
+                maxLength = shards[i]->iov_len;
+            }
         }
     }
 
@@ -177,7 +179,7 @@ int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, int maxLength)
     // If the inverted matrix isn't cached in the tree yet we must
     // construct it ourselves and insert it into the tree for the
     // future.  In this way the inversion tree is lazily loaded.
-    RsMatrix* dataDecodeMatrix = NULL; //m_Tree->GetInvertedMatrix(invalidIndice);
+    RsMatrix* dataDecodeMatrix = NULL;
     std::map<std::vector<int>, RsMatrix*>::iterator it;
     if((it = m_Tree.find(invalidIndice)) != m_Tree.end()) {
         dataDecodeMatrix = it->second;
@@ -204,10 +206,6 @@ int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, int maxLength)
 
         // Cache the inverted matrix in the tree for future use keyed on the
         // indices of the invalid rows.
-//        if(m_Tree->InsertInvertedMatrix(invalidIndice,dataDecodeMatrix,m_nShards)) {
-//            rs_log("insert decode matrix failed.");
-//        }
-
         m_Tree[invalidIndice] = dataDecodeMatrix;
     }
 
@@ -220,8 +218,8 @@ int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, int maxLength)
     vector<iovec*> output;
     int outputCount = 0;
 
-    RsMatrix matrixParity;
-    matrixParity.Initialize(m_nParityShards, m_nDataShards);
+    RsMatrix matrixRows;
+    matrixRows.Initialize(m_nParityShards, m_nDataShards);
 
     for(int iShard = 0; iShard < m_nDataShards; iShard++) {
         if(shards[iShard] == NULL) {
@@ -230,16 +228,36 @@ int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, int maxLength)
             shards[iShard]->iov_len = maxLength;
 
             output.push_back(shards[iShard]);
-            memcpy(matrixParity.m_Matrix[outputCount], dataDecodeMatrix->m_Matrix[iShard], m_nDataShards);
+            memcpy(matrixRows.m_Matrix[outputCount], dataDecodeMatrix->m_Matrix[iShard], m_nDataShards);
 
             outputCount++;
         }
     }
 
-    RsMatrix* matrixRows = matrixParity.SubMatrix(0, 0, outputCount, m_nDataShards);
-    RsAutoFree(RsMatrix, matrixRows);
+    codeSomeShards(&matrixRows, subShards, output, maxLength);
 
-    codeSomeShards(matrixRows, subShards, output, outputCount);
+    if(!reconstruct_parity) {
+        return ret;
+    }
+
+    // reconstruct parity
+    output.clear();
+    outputCount = 0;
+
+    for(int iShard = m_nDataShards; iShard < m_nShards; iShard++) {
+        if(shards[iShard] == NULL) {
+            shards[iShard] = new iovec;
+            shards[iShard]->iov_base = new uint8_t[maxLength];
+            shards[iShard]->iov_len = maxLength;
+
+            output.push_back(shards[iShard]);
+            memcpy(matrixRows.m_Matrix[outputCount], dataDecodeMatrix->m_Matrix[iShard], m_nDataShards);
+
+            outputCount++;
+        }
+    }
+
+    codeSomeShards(&matrixRows, subShards, output, maxLength);
 
     return ret;
 }
@@ -263,7 +281,7 @@ int ReedSolomon::checkShards(std::vector<iovec *> &shards, int &maxLength)
     return ERROR_SUCCESS;
 }
 
-int ReedSolomon::codeSomeShards(RsMatrix *MatrixRows, std::vector<iovec *> &input, std::vector<iovec *> &output, int outputCount)
+int ReedSolomon::codeSomeShards(RsMatrix *MatrixRows, std::vector<iovec *> &input, std::vector<iovec *> &output, int byteCount)
 {
     int r, c;
     iovec* in;
@@ -271,11 +289,11 @@ int ReedSolomon::codeSomeShards(RsMatrix *MatrixRows, std::vector<iovec *> &inpu
     for(int c = 0; c < m_nDataShards; c++) {
         in = input[c];
 
-        for(int iRow = 0; iRow < outputCount; iRow++) {
+        for(int iRow = 0; iRow < output.size(); iRow++) {
             if( c == 0 ) {
-                galMulSlice(MatrixRows->m_Matrix[iRow][c], in, output[iRow]);
+                galMulSlice(MatrixRows->m_Matrix[iRow][c], in, output[iRow], byteCount);
             } else {
-                galMulSliceXor(MatrixRows->m_Matrix[iRow][c], in, output[iRow]);
+                galMulSliceXor(MatrixRows->m_Matrix[iRow][c], in, output[iRow], byteCount);
             }
         }
     }

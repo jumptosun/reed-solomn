@@ -62,7 +62,7 @@ extern uint8_t galExp(uint8_t a, int n);
  * @brief galMulSlice
  *  if the in is less than out , 0 is used instead.
  */
-extern void galMulSlice(uint8_t c, iovec* in, iovec* out);
-extern void galMulSliceXor(uint8_t c, iovec* in, iovec* out);
+extern void galMulSlice(uint8_t c, iovec* in, iovec* out, int byteCount);
+extern void galMulSliceXor(uint8_t c, iovec* in, iovec* out, int byteCount);
 
 #endif // RS_UTILITY_HPP

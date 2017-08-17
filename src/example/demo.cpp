@@ -8,12 +8,16 @@
 
 using namespace std;
 
+#define RS_DATA_SHARDS_NUM		7
+#define RS_PARITY_SHARDS_NUM	3
+#define RS_SHARDS_NUM			10
+
 int main(int argc, char *argv[])
 {
     vector<iovec*> origin;
 
     printf("before the reconstruct:\n");
-    for(int i = 0; i < 10; i++) {
+    for(int i = 0; i < RS_DATA_SHARDS_NUM; i++) {
         iovec *data = new iovec;
         data->iov_base = new char[64];
         data->iov_len = 64;
@@ -27,7 +31,7 @@ int main(int argc, char *argv[])
     cout<<endl;
 
     ReedSolomon* rs = new ReedSolomon();
-    rs->Initialize(10,4);
+    rs->Initialize(RS_DATA_SHARDS_NUM, RS_PARITY_SHARDS_NUM);
 
     // encode
     rs->Encode(origin);
@@ -44,7 +48,7 @@ int main(int argc, char *argv[])
     }
 
     // reconstruct
-    rs->Reconstruct(origin,64);
+    rs->Reconstruct(origin);
 
     printf("after the reconstruct:\n");
     for(int i = 0; i < 10; i++) {
