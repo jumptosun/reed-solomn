@@ -75,7 +75,6 @@ int ReedSolomon::Initialize(int dataShards, int parityShards)
     RsAutoFree(RsMatrix, invert);
 
     m_Matrix = vm->Multiply(invert);
-//    m_Tree = new RsInversionTree(m_nShards);
 
     m_Parity = m_Matrix->SubMatrix(m_nDataShards, 0, m_nShards, m_Matrix->m_nRows);
 
@@ -162,12 +161,6 @@ int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, bool reconstruct_pari
     vector<int> validIndice, invalidIndice;
 
     for(int matrixRow = 0; matrixRow < m_nShards; matrixRow++ ) {
-
-        // all the data shards in complete, return
-        if(matrixRow == m_nDataShards && invalidIndice.empty()) {
-            return ret;
-        }
-
         if(shards[matrixRow] != NULL) {
             subShards.push_back(shards[matrixRow]);
             validIndice.push_back(matrixRow);
@@ -251,7 +244,7 @@ int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, bool reconstruct_pari
             shards[iShard]->iov_len = maxLength;
 
             output.push_back(shards[iShard]);
-            memcpy(matrixRows.m_Matrix[outputCount], dataDecodeMatrix->m_Matrix[iShard], m_nDataShards);
+            memcpy(matrixRows.m_Matrix[outputCount], m_Parity->m_Matrix[iShard - m_nDataShards], m_nDataShards);
 
             outputCount++;
         }
