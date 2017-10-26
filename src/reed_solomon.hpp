@@ -55,6 +55,13 @@ public:
      * the lost shard will be reconstruct to the maxlength.
      */
     int Reconstruct(std::vector<iovec*>& shards, bool reconstruct_parity = false);
+    /**
+     * @brief Verify
+     * Verify returns true if the parity shards contain correct data.
+     * The data is the same format as Encode. No data is modified, so
+     * you are allowed to read from data while this is running.
+     */
+    bool Verify(std::vector<iovec*>& shards);
 
 protected:
     /**

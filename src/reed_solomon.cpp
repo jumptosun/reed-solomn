@@ -212,7 +212,7 @@ int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, bool reconstruct_pari
     int outputCount = 0;
 
     RsMatrix matrixRows;
-    matrixRows.Initialize(m_nParityShards, m_nDataShards);
+    matrixRows.Initialize(m_nParityShards, m_nDataShards);//3*7
 
     for(int iShard = 0; iShard < m_nDataShards; iShard++) {
         if(shards[iShard] == NULL) {
@@ -253,6 +253,54 @@ int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, bool reconstruct_pari
     codeSomeShards(&matrixRows, subShards, output, maxLength);
 
     return ret;
+}
+
+bool ReedSolomon::Verify(std::vector<iovec *> &shards){
+    if (shards.size() != m_nShards){
+        return false;
+    }
+
+    int maxLength = 0;
+
+    for(int i = 0; i < m_nDataShards; i++) {
+        if(shards[i] != NULL) {
+
+            if(maxLength < shards[i]->iov_len) {
+                maxLength = shards[i]->iov_len;
+            }
+        }
+    }
+
+    // outputs is generated tmply, to compare with shards[7:]
+    vector<iovec *> outputs;
+    for(int i = 0; i < m_nParityShards; i++){
+        iovec* data = new iovec;
+        data->iov_base = new uint8_t[maxLength];
+        bzero(data->iov_base, maxLength);
+        data->iov_len = maxLength;
+        outputs.push_back(data);
+    }
+    for(int i = 0; i < m_nDataShards; i++){
+        iovec* data = shards[i];
+        for(int jRow = 0; jRow < m_nParityShards; jRow++){
+            galMulSliceXor(m_Parity->m_Matrix[jRow][i], data, outputs[jRow], maxLength);
+        }
+    }
+    //int n = 0;
+    for(int row = 0; row < outputs.size(); row++ ){
+        for(int i = 0; i < maxLength; i++){
+            int a = ((uint8_t*)(outputs[row]->iov_base))[i];
+            int b = ((uint8_t*)(shards[row+m_nDataShards]->iov_base))[i];
+            if(a != b){
+                printf("verify not pass \n");
+                return false;
+            }
+        }
+    }
+
+    return true;
+
+
 }
 
 int ReedSolomon::checkShards(std::vector<iovec *> &shards, int &maxLength)
