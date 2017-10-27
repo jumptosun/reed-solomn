@@ -253,7 +253,12 @@ int ReedSolomon::Reconstruct(std::vector<iovec *> &shards, bool reconstruct_pari
         }
     }
 
-    codeSomeShards(&matrixRows, subShards, output, maxLength);
+    vector<iovec*> in;
+    for(int i = 0; i < m_nDataShards; i++){
+        in.push_back(shards[i]);
+    }
+
+    codeSomeShards(&matrixRows, in, output, maxLength);
 
     return ret;
 }
