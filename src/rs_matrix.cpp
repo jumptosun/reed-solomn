@@ -22,6 +22,7 @@ RsMatrix::~RsMatrix()
     if(m_Matrix != NULL) {
         uint8_t* data = m_Matrix[0];
         rs_freepa(data);
+        rs_freepa(m_Matrix);
     }
 }
 
