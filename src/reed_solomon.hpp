@@ -1,10 +1,12 @@
 #ifndef REED_SOLOMON_CPP
 #define REED_SOLOMON_CPP
 
-#include <map>
-#include <vector>
-#include <stdint.h>
-#include <sys/socket.h>
+//#include <map>
+//#include <vector>
+//#include <stdint.h>
+//#include <sys/socket.h>
+
+#include <ifec.h>
 
 class RsMatrix;
 class RsInversionTree;
@@ -14,13 +16,9 @@ class RsInversionTree;
  * 	contains a matrix for a specific
  * 	distribution of datashards and parity shards.
  */
-class ReedSolomon
+class ReedSolomon : public IFEC
 {
 private:
-    int m_nDataShards;		///< number of the data shards, should not be modified
-    int m_nParityShards;	///< Number of parity shards, should not be modified.
-    int m_nShards;			///< Total number of shards. Calculated, and should not be modified.
-
     RsMatrix* m_Matrix;
     std::map<std::vector<int>, RsMatrix*> m_Tree;
 
@@ -28,7 +26,7 @@ private:
 
 public:
     ReedSolomon();
-    virtual ~ReedSolomon();
+    ~ReedSolomon();
 public:
     /**
      * @brief Initialize
