@@ -55,30 +55,50 @@ int rs_xor::Encode(std::vector<iovec *> &shards){
     iovec* parityShard = new iovec;
     parityShard->iov_base = new uint8_t[maxLength];
     parityShard->iov_len = maxLength;
+    bzero(parityShard->iov_base, parityShard->iov_len);
 
     // do encode
+//    uint8_t sum;//xor sum of each row's value of index i
+//    iovec * first_row = shards[0];
+//    for(int i = 0; i < maxLength; i++){
+//        sum = i < first_row->iov_len ? ((uint8_t*)first_row->iov_base)[i] : 0;
+//        for(int row = 1; row < m_nDataShards; row++){
+//            iovec * r = shards[row];
+//            uint8_t value = i < r->iov_len ? ((uint8_t*)r->iov_base)[i] : 0;// fill 0 if row > iov_len
+//            sum ^= value;
+//        }
+//        ((uint8_t*)parityShard->iov_base)[i] = sum;
+//    }
 
-    uint8_t sum;//xor sum of each row's value of index i
-    iovec * first_row = shards[0];
 
-    for(int i = 0; i < maxLength; i++){
-        sum = i < first_row->iov_len ? ((uint8_t*)first_row->iov_base)[i] : 0;
-        for(int row = 1; row < m_nDataShards; row++){
-            iovec * r = shards[row];
-            uint8_t value = i < r->iov_len ? ((uint8_t*)r->iov_base)[i] : 0;// fill 0 if row > iov_len
-            sum ^= value;
+
+    iovec* eachShard = NULL;
+    uint32_t *data, *fec;
+    for(int i = 0; i < m_nDataShards; i++) {
+        eachShard = shards[i];
+
+        for(int j = 0; j < eachShard->iov_len; j += 4) {
+            data = (uint32_t*)((char*)eachShard->iov_base + j);
+            fec = (uint32_t*)((char*)parityShard->iov_base + j);
+
+            *fec ^= *data;
         }
 
-        ((uint8_t*)parityShard->iov_base)[i] = sum;
-
+        int tail = eachShard->iov_len % 4;
+        for(int k = eachShard->iov_len - tail; k <  eachShard->iov_len; k++) {
+            ((char*)parityShard->iov_base)[k] ^= ((char*)eachShard->iov_base)[k];
+        }
     }
+
 
     // append the parity shard after the input
     shards.push_back(parityShard);
 
+    return ERROR_SUCCESS;
 }
 
-int rs_xor::Reconstruct(std::vector<iovec *> &shards, bool reconstruct_parity){
+int rs_xor::Reconstruct(std::vector<iovec *> &shards, bool reconstruct_parity)
+{
     int ret = ERROR_SUCCESS;
     // check arguments
     int maxLength = 0;//the max int rows' length
@@ -147,6 +167,7 @@ int rs_xor::Reconstruct(std::vector<iovec *> &shards, bool reconstruct_parity){
     //replace NULL to XorShard in shards
     shards[nlost_row] = XorShard;
 
+    return ERROR_SUCCESS;
 }
 
 int rs_xor::checkShards(std::vector<iovec *> &shards, int &maxLength)
